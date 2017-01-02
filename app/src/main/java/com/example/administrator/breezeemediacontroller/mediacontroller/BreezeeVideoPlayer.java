@@ -22,7 +22,6 @@ public abstract class BreezeeVideoPlayer extends FrameLayout implements PlayerLi
 
 //    protected ViewGroup mTextureViewContainer; //渲染控件父类
 
-    protected int mRotate = 0; //针对某些视频的旋转信息做了旋转处理
 
     public BreezeeVideoPlayer(Context context) {
         super(context);
