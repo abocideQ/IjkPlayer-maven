@@ -65,24 +65,24 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer {
     * 初始化播放器以外View
     * */
     public void initView(Context context,AddViewListener listener,boolean ifInitMyselfsView) {
-        if (ifInitMyselfsView){
-            //顶部ViewGoup
-            topViewGoup = new RelativeLayout(context);
-            bottomViewGoup = new RelativeLayout(context);
-            topViewGoup.setId(topViewGoupId);
-            bottomViewGoup.setId(bottomViewGoupId);
-            FrameLayout.LayoutParams paramsTop=new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, viewGoupHeigh);
-            paramsTop.gravity=Gravity.TOP;
-            topViewGoup.setBackgroundColor(getContext().getResources().getColor(R.color.VideoBlack));
-            topViewGoup.setLayoutParams(paramsTop);
-            topViewGoup.setAlpha((float) 0.5);
-            //底部ViewGoup
-            FrameLayout.LayoutParams paramsBottom=new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, viewGoupHeigh);
-            paramsBottom.gravity=Gravity.BOTTOM;
-            bottomViewGoup.setBackgroundColor(getContext().getResources().getColor(R.color.VideoBlack));
-            bottomViewGoup.setLayoutParams(paramsBottom);
-            bottomViewGoup.setAlpha((float) 0.5);
+        //顶部ViewGoup
+        topViewGoup = new RelativeLayout(context);
+        bottomViewGoup = new RelativeLayout(context);
+        topViewGoup.setId(topViewGoupId);
+        bottomViewGoup.setId(bottomViewGoupId);
+        FrameLayout.LayoutParams paramsTop=new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, viewGoupHeigh);
+        paramsTop.gravity=Gravity.TOP;
+        topViewGoup.setBackgroundColor(getContext().getResources().getColor(R.color.VideoBlack));
+        topViewGoup.setLayoutParams(paramsTop);
+        topViewGoup.setAlpha((float) 0.5);
+        //底部ViewGoup
+        FrameLayout.LayoutParams paramsBottom=new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, viewGoupHeigh);
+        paramsBottom.gravity=Gravity.BOTTOM;
+        bottomViewGoup.setBackgroundColor(getContext().getResources().getColor(R.color.VideoBlack));
+        bottomViewGoup.setLayoutParams(paramsBottom);
+        bottomViewGoup.setAlpha((float) 0.5);
 
+        if (ifInitMyselfsView){
             //播放按钮
             ig_play=new ImageView(context);
             ig_play.setId(ig_playId);
@@ -119,6 +119,7 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer {
             seekBar.setAlpha((float) 1.0);
             bottomViewGoup.addView(seekBar);
         }
+
         //监听回调
         if (listener != null)
             listener.initOhterView();
