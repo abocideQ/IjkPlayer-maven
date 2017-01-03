@@ -8,6 +8,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Surface;
 
 import com.example.administrator.breezeemediacontroller.mediacontroller.listener.PlayerListener;
@@ -24,7 +25,7 @@ import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
 /**
- * 视频管理类(播放信息管理)
+ * 视频(MediaPlayer)管理类(播放信息管理)
  * 使用IJK、EXOPlayer(韩国EXO组合，MDZZ)
  * Created by Breezee on 2017/01/02.
  */
@@ -59,10 +60,10 @@ public class BreezeeVideoManager implements IMediaPlayer.OnPreparedListener, IMe
     //Player控制Hanlder类型
     private PlayerHandler playerHandler;//Player用
     private Handler listenerHandler;//接口回调用
+    private WeakReference<PlayerListener> listener;//回调接口
     public static final int HANDLER_PREPARE = 0;    //InitPlayer
     public static final int HANDLER_SETDISPLAY = 1; //setDisplay
     public static final int HANDLER_RELEASE = 2;    //Release
-    private WeakReference<PlayerListener> listener;//回调接口
     private int buffterPoint;
     //BreezeeVideoManager实例
     private static BreezeeVideoManager videoManager;
@@ -398,5 +399,11 @@ public class BreezeeVideoManager implements IMediaPlayer.OnPreparedListener, IMe
     }
     public static int getShowType() {
         return TYPE;
+    }
+    /*
+    * 设置是否使用硬解码
+    * */
+    public static void setUseMediaCodec(boolean ifUseMediaCodec){
+        USE_MEDIA_CODEC=ifUseMediaCodec;
     }
 }
