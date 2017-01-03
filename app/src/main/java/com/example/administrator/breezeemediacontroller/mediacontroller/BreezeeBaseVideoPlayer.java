@@ -61,6 +61,7 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         this.surface = new Surface(surface);
         BreezeeVideoManager.instance().setDisplay(this.surface);
+        BreezeeVideoManager.instance().setListener(this);
     }
 
     @Override

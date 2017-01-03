@@ -406,4 +406,11 @@ public class BreezeeVideoManager implements IMediaPlayer.OnPreparedListener, IMe
     public static void setUseMediaCodec(boolean ifUseMediaCodec){
         USE_MEDIA_CODEC=ifUseMediaCodec;
     }
+    /*
+    * 获取MediaPlayer
+    * */
+
+    public AbstractMediaPlayer getMediaPlayer() {
+        return mediaPlayer;
+    }
 }
