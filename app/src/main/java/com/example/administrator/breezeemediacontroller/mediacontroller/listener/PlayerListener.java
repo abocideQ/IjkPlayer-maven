@@ -3,7 +3,7 @@ package com.example.administrator.breezeemediacontroller.mediacontroller.listene
 public interface PlayerListener {
     void onPrepared();
 
-    void onAutoCompletion();
+    void onAutoCompletion();//非循环情况下执行
 
     void onCompletion();
 

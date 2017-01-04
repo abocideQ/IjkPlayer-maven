@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements ViewListener {
         //1.activity 2.除播放器以外View的处理 3.是否加载默认View
         sampleVideo.initView(this,this,true);
         //1.播放地址 2.播放源信息头 3.是否循环播放 4.播放速度
-        sampleVideo.setVideo(soucceMovie, testMap, true, 1);
+        sampleVideo.setVideo(soucceMovie, testMap, false, 1);
     }
 
     /*
@@ -69,8 +69,11 @@ public class MainActivity extends AppCompatActivity implements ViewListener {
         setFullScreen(false);
     }
 
-
-
+    @Override
+    public void playOhterVideo() {
+        //1.播放地址 2.播放源信息头 3.是否循环播放 4.播放速度
+        sampleVideo.setVideo(soucceMovie, testMap, true, 1);
+    }
 
 
     /**

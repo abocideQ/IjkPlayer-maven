@@ -3,6 +3,8 @@ package com.example.administrator.breezeemediacontroller.mediacontroller;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.os.Handler;
+import android.os.Message;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.View;
@@ -15,6 +17,7 @@ import android.widget.SeekBar;
 import android.widget.Toast;
 
 import com.example.administrator.breezeemediacontroller.R;
+import com.example.administrator.breezeemediacontroller.mediacontroller.listener.MediaListener;
 import com.example.administrator.breezeemediacontroller.mediacontroller.listener.ViewListener;
 
 import java.util.Map;
@@ -24,9 +27,9 @@ import java.util.Map;
  * Created by Administrator on 2017/1/3.
  */
 
-public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implements SeekBar.OnSeekBarChangeListener, View.OnClickListener {
+public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implements MediaListener, SeekBar.OnSeekBarChangeListener, View.OnClickListener {
     //parent
-    private int parentHeigh=240;
+    private int parentHeigh = 240;
     private int parentWith;
     //顶部布局
     private ViewGroup topViewGoup;
@@ -53,6 +56,7 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     @android.support.annotation.IdRes
     int seekBarId = 0x951014;
     private int playingProgress;
+    private boolean isTouching = false;
     //横屏按钮
     private ImageView ig_toOrientation;
     public final static
@@ -62,7 +66,7 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     private int ig_toOrientationHeigh;
 
     private Activity activity;
-    private ViewListener addViewListener;
+    private ViewListener viewListener;
     //BreezeeViews
     private boolean ifInitBreezeeViews;
 
@@ -81,13 +85,14 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     public ViewGroup getParentViewGroup() {
         return this;
     }
+
     /*
     * 初始化播放器以外View
     * */
     public void initView(Activity activity, Context context, ViewListener listener, boolean ifInitBreezeeViews) {
-        this.ifInitBreezeeViews=ifInitBreezeeViews;
-        this.activity=activity;
-        this.addViewListener=listener;
+        this.ifInitBreezeeViews = ifInitBreezeeViews;
+        this.activity = activity;
+        this.viewListener = listener;
         this.setBackgroundResource(android.R.color.black);
         //顶部ViewGoup
         topViewGoup = new RelativeLayout(context);
@@ -162,7 +167,7 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     * */
     public void setVideo(String url, Map<String, String> map, boolean isLoop, float speed) {
         setResource(url, map, isLoop, speed);
-        addTextureView();
+        addTextureView(this);
         topViewGoup.bringToFront();
         bottomViewGoup.bringToFront();
         requestLayout();
@@ -178,14 +183,24 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     /*
     * OnSeekBarChangeListener
     * */
+    public Handler seekHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            if (ifInitBreezeeViews)
+                seekBar.setProgress((int) BreezeeVideoManager.instance().getMediaPlayer().getCurrentPosition());
+        }
+    };
+
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
-        Toast.makeText(getContext(), "想的挺好，还想快进", Toast.LENGTH_SHORT).show();
+        isTouching = true;
     }
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
-
+        if (ifInitBreezeeViews) {
+            isTouching = false;
+            BreezeeVideoManager.instance().getMediaPlayer().seekTo(seekBar.getProgress());
+        }
     }
 
     @Override
@@ -194,89 +209,132 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     }
 
     @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case ig_playId:
-                if (MEDIA_STATE==CURRENT_STATE_PLAYING){
-                    onPause();
-                    doPauseView();
-                }
-                else if (MEDIA_STATE==CURRENT_STATE_PAUSE){
-                    onResume();
-                    doResumeView();
-                }
-                break;
-            case ig_toOrientationId:
-                if (screenType== ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE){
-                    onResolve(activity,false);
-                    doPortView();
-                }else if (screenType==ActivityInfo.SCREEN_ORIENTATION_PORTRAIT){
-                    onResolve(activity,true);
-                    doLandView(addViewListener);
-                }
-                break;
-        }
+    public void updateSeekBar() {
+        if (!isTouching)
+            seekHandler.sendEmptyMessage(0);
     }
-    /*
-    * 暂停View变化
-    * */
-    public void doPauseView(){
-        if (ifInitBreezeeViews){
+
+    @Override
+    public void setSeekBarMax(int max) {
+        if (ifInitBreezeeViews)
+            seekBar.setMax(max);
+    }
+
+    @Override
+    public void resetView() {
+        if (ifInitBreezeeViews) {
+            seekBar.setProgress(0);
             ig_play.setImageResource(R.drawable.video_play_pressed);
         }
     }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case ig_playId:
+                if (MEDIA_STATE == CURRENT_STATE_PLAYING) {
+                    onPause();
+                    doPauseView();
+                } else if (MEDIA_STATE == CURRENT_STATE_PAUSE) {
+                    onResume();
+                    doResumeView();
+                } else if (MEDIA_STATE == CURRENT_STATE_AUTO_COMPLETE) {
+                    if (BreezeeVideoManager.instance().getMediaPlayer() != null)
+                        BreezeeVideoManager.instance().getMediaPlayer().release();
+                    if (getTexture() != null)
+                        removeView(getTexture());
+                    doResumeView();
+                    if (viewListener != null)
+                        viewListener.playOhterVideo();
+                } else {
+                    if (BreezeeVideoManager.instance().getMediaPlayer() != null)
+                        BreezeeVideoManager.instance().getMediaPlayer().release();
+                    if (getTexture() != null)
+                        removeView(getTexture());
+                    doResumeView();
+                    if (viewListener != null)
+                        viewListener.playOhterVideo();
+                }
+                break;
+            case ig_toOrientationId:
+                if (screenType == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
+                    onResolve(activity, false);
+                    doPortView();
+                } else if (screenType == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+                    onResolve(activity, true);
+                    if (viewListener != null)
+                        doLandView(viewListener);
+                }
+                break;
+        }
+    }
+
+    /*
+    * 暂停View变化
+    * */
+    public void doPauseView() {
+        if (ifInitBreezeeViews) {
+            ig_play.setImageResource(R.drawable.video_play_pressed);
+        }
+    }
+
     /*
     * 恢复View变化
     * */
-    public void doResumeView(){
-        if (ifInitBreezeeViews){
+    public void doResumeView() {
+        if (ifInitBreezeeViews) {
             ig_play.setImageResource(R.drawable.video_pause_normal);
         }
     }
+
     /*
     * 横屏View变化
     * */
-    private int mSystemUiVisibility;
-    public void doLandView(ViewListener addViewListener){
-        if (getParent() instanceof RelativeLayout){
-            RelativeLayout.LayoutParams params=new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+    public void doLandView(ViewListener viewListener) {
+        if (getParent() instanceof RelativeLayout) {
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             setLayoutParams(params);
             requestLayout();
-        }else if (getParent() instanceof LinearLayout){
-            LinearLayout.LayoutParams params= new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            setLayoutParams(params);
-            requestLayout();
-        }
-        addViewListener.doLandView();
-    }
-    /*
-    * 竖屏View变化
-    * */
-    public void doPortView(){
-        if (getParent() instanceof RelativeLayout){
-            RelativeLayout.LayoutParams params=new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            setLayoutParams(params);
-            requestLayout();
-        }else if (getParent() instanceof LinearLayout) {
+        } else if (getParent() instanceof LinearLayout) {
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             setLayoutParams(params);
             requestLayout();
         }
-        addViewListener.doPortView();
+        if (viewListener != null)
+            viewListener.doLandView();
     }
+
+    /*
+    * 竖屏View变化
+    * */
+    public void doPortView() {
+        if (getParent() instanceof RelativeLayout) {
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            setLayoutParams(params);
+            requestLayout();
+        } else if (getParent() instanceof LinearLayout) {
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            setLayoutParams(params);
+            requestLayout();
+        }
+        if (viewListener != null)
+            viewListener.doPortView();
+    }
+
     /*
     * 进度条拖动完成后View变化
     * */
-    public void doChangedTheSeekBar(){
-        if (ifInitBreezeeViews){
+    public void doChangedTheSeekBar() {
+        if (ifInitBreezeeViews) {
 
         }
     }
+
     /*
     * 进度条拖动中View变化
     * */
-    public void doChangingSeekBar(){
-        if (ifInitBreezeeViews){
+    public void doChangingSeekBar() {
+        if (ifInitBreezeeViews) {
 
         }
     }

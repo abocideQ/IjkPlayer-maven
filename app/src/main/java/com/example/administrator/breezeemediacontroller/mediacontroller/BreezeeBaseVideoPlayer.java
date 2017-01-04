@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.graphics.SurfaceTexture;
+import android.os.Handler;
+import android.os.Message;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -17,7 +19,9 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
+import com.example.administrator.breezeemediacontroller.mediacontroller.listener.MediaListener;
 import com.example.administrator.breezeemediacontroller.mediacontroller.listener.PlayerListener;
+import com.example.administrator.breezeemediacontroller.mediacontroller.model.BreezeeModel;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,6 +37,7 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
     private String TAG = "BreezeeBaseVideoPlayer";
     private BreezeeTextureView textureView;
     private Surface surface;
+    private MediaListener mediaListener;
 
     public static int screenType = 1; //当前屏幕状态，默认1为竖屏
 
@@ -67,7 +72,8 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
     /*
      * 2.添加TextureView
      **/
-    protected void addTextureView() {
+    protected void addTextureView(MediaListener mediaListener) {
+        this.mediaListener = mediaListener;
         textureView = null;
         textureView = new BreezeeTextureView(getContext());
         textureView.setSurfaceTextureListener(this);
@@ -78,6 +84,10 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
         addView(textureView);
     }
 
+
+    public TextureView getTexture(){
+        return textureView;
+    }
     /*
     * 回调获取Surface
     * */
@@ -110,18 +120,35 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
     * */
     @Override
     public void onPrepared() {
-        Log.e("PlayerListener", "-onPrepared");
         MEDIA_STATE = CURRENT_STATE_PLAYING;
+        mediaListener.setSeekBarMax((int) BreezeeVideoManager.instance().getMediaPlayer().getDuration());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    while (BreezeeVideoManager.instance().getMediaPlayer().isPlaying()) {
+                        mediaListener.updateSeekBar();
+                        Thread.sleep(1000);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     @Override
     public void onAutoCompletion() {
         Log.e("PlayerListener", "-onAutoCompletion");
+        MEDIA_STATE=CURRENT_STATE_AUTO_COMPLETE;
+        BreezeeVideoManager.instance().getMediaPlayer().release();
+        mediaListener.resetView();
     }
 
     @Override
     public void onCompletion() {
         Log.e("PlayerListener", "-onCompletion");
+
     }
 
     @Override
