@@ -4,6 +4,8 @@ package com.example.administrator.breezeemediacontroller.mediacontroller.listene
  * Created by Administrator on 2017/1/3.
  */
 
-public interface AddViewListener {
+public interface ViewListener {
     void initOhterView();
+    void doLandView();
+    void doPortView();
 }

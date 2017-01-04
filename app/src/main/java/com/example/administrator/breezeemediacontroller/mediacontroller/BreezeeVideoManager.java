@@ -312,7 +312,9 @@ public class BreezeeVideoManager implements IMediaPlayer.OnPreparedListener, IMe
             }
         });
     }
-
+    /*
+    * 进度调整完成
+    * */
     @Override
     public void onSeekComplete(IMediaPlayer mp) {
         listenerHandler.post(new Runnable() {
@@ -324,7 +326,9 @@ public class BreezeeVideoManager implements IMediaPlayer.OnPreparedListener, IMe
             }
         });
     }
-
+    /*
+    * 错误状态
+    * */
     @Override
     public boolean onError(IMediaPlayer mp, final int what, final int extra) {
         listenerHandler.post(new Runnable() {
@@ -350,7 +354,9 @@ public class BreezeeVideoManager implements IMediaPlayer.OnPreparedListener, IMe
         });
         return false;
     }
-
+    /*
+    * VideoSize变化
+    * */
     @Override
     public void onVideoSizeChanged(IMediaPlayer mp, int width, int height, int sar_num, int sar_den) {
         currentVideoWidth = mp.getVideoWidth();
