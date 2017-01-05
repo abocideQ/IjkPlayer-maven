@@ -28,7 +28,7 @@ import java.util.Map;
 
 
 /**
- * 关联播放器、播放器自身逻辑控制
+ * 关联播放器、播放器与View逻辑控制
  * Created by Breezee on 2017/1/2.
  */
 
@@ -85,9 +85,10 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
     }
 
 
-    public TextureView getTexture(){
+    public TextureView getTexture() {
         return textureView;
     }
+
     /*
     * 回调获取Surface
     * */
@@ -121,28 +122,31 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
     @Override
     public void onPrepared() {
         MEDIA_STATE = CURRENT_STATE_PLAYING;
-        mediaListener.setSeekBarMax((int) BreezeeVideoManager.instance().getMediaPlayer().getDuration());
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    while (BreezeeVideoManager.instance().getMediaPlayer().isPlaying()) {
-                        mediaListener.updateSeekBar();
-                        Thread.sleep(1000);
+        if (mediaListener != null) {
+            mediaListener.setSeekBarMax((int) BreezeeVideoManager.instance().getMediaPlayer().getDuration());
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        while (BreezeeVideoManager.instance().getMediaPlayer().isPlaying()) {
+                            mediaListener.updateSeekBar();
+                            Thread.sleep(1000);
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
-            }
-        }).start();
+            }).start();
+        }
     }
 
     @Override
     public void onAutoCompletion() {
         Log.e("PlayerListener", "-onAutoCompletion");
-        MEDIA_STATE=CURRENT_STATE_AUTO_COMPLETE;
+        MEDIA_STATE = CURRENT_STATE_AUTO_COMPLETE;
         BreezeeVideoManager.instance().getMediaPlayer().release();
-        mediaListener.resetView();
+        if (mediaListener != null)
+            mediaListener.resetView();
     }
 
     @Override

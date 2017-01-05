@@ -23,7 +23,7 @@ import com.example.administrator.breezeemediacontroller.mediacontroller.listener
 import java.util.Map;
 
 /**
- * 添加布局、布局对播放器的控制
+ * 添加布局、布局的控制
  * Created by Administrator on 2017/1/3.
  */
 
