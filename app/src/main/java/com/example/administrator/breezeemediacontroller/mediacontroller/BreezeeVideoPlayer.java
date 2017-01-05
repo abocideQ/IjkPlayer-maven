@@ -1,5 +1,7 @@
 package com.example.administrator.breezeemediacontroller.mediacontroller;
 
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
@@ -9,6 +11,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -29,10 +32,11 @@ import java.util.Map;
  * Created by Administrator on 2017/1/3.
  */
 
-public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implements MediaListener, SeekBar.OnSeekBarChangeListener, View.OnClickListener {
+public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implements MediaListener
+        , SeekBar.OnSeekBarChangeListener, View.OnClickListener, View.OnTouchListener {
     //parent
-    private int parentHeigh = 240;
-    private int parentWith;
+    private boolean isViewGoupVisible = true;
+    private int ViewGoupHeigh = 260;
     //顶部布局
     private ViewGroup topViewGoup;
     public final static
@@ -44,14 +48,21 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     @android.support.annotation.IdRes
     int bottomViewGoupId = 0x941212;
     //顶部、底部布局高度
-    private int viewGoupHeigh = 100;
+    private int viewGoupHeigh = 120;
     //播放按钮
     private ImageView ig_play;
     public final static
     @android.support.annotation.IdRes
     int ig_playId = 0x951007;
-    private int ig_playWeith = 70;
-    private int ig_playHeigh = 70;
+    private int ig_playWeith = 90;
+    private int ig_playHeigh = 90;
+    //回退按钮
+    private ImageView ig_back;
+    public final static
+    @android.support.annotation.IdRes
+    int ig_backId = 0x951000;
+    private int ig_backWeith = 70;
+    private int ig_backHeigh = 70;
     //进度条
     private SeekBar seekBar;
     public final static
@@ -64,7 +75,7 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     public final static
     @android.support.annotation.IdRes
     int ig_toOrientationId = 0x951013;
-    private int ig_toOrientationWeigh = 50;
+    private int ig_toOrientationWeigh = 70;
     private int ig_toOrientationHeigh;
 
     private Activity activity;
@@ -96,11 +107,13 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
         this.activity = activity;
         this.viewListener = listener;
         this.setBackgroundResource(android.R.color.black);
+        this.setOnTouchListener(this);
         //顶部ViewGoup
         topViewGoup = new RelativeLayout(context);
         bottomViewGoup = new RelativeLayout(context);
         topViewGoup.setId(topViewGoupId);
         bottomViewGoup.setId(bottomViewGoupId);
+        viewGoupHeigh = DensityUtil.dip2px(context, 45);
         FrameLayout.LayoutParams paramsTop = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, viewGoupHeigh);
         paramsTop.gravity = Gravity.TOP;
         topViewGoup.setBackgroundColor(getContext().getResources().getColor(R.color.VideoBlack));
@@ -114,6 +127,10 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
         bottomViewGoup.setAlpha((float) 0.5);
 
         if (ifInitBreezeeViews) {
+            //控件图标大小初始化
+            ig_playWeith = DensityUtil.dip2px(context, 30);
+            ig_toOrientationWeigh = DensityUtil.dip2px(context, 30);
+            ig_backWeith = DensityUtil.dip2px(context, 30);
             //播放按钮
             ig_play = new ImageView(context);
             ig_play.setId(ig_playId);
@@ -121,7 +138,7 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
             RelativeLayout.LayoutParams ig_playParams = new RelativeLayout.LayoutParams(ig_playWeith, ig_playWeith);
             ig_playParams.addRule(RelativeLayout.CENTER_VERTICAL);
             ig_playParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-            ig_playParams.leftMargin = 15;
+            ig_playParams.leftMargin = DensityUtil.dip2px(context, 10);
             ig_play.setLayoutParams(ig_playParams);
             ig_play.setImageResource(R.drawable.video_pause_normal);
             ig_play.setAlpha((float) 1.0);
@@ -134,8 +151,12 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
             RelativeLayout.LayoutParams ig_toOrientationParams = new RelativeLayout.LayoutParams(ig_toOrientationWeigh, ig_toOrientationWeigh);
             ig_toOrientationParams.addRule(RelativeLayout.CENTER_VERTICAL);
             ig_toOrientationParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-            ig_toOrientationParams.rightMargin = 15;
+            ig_toOrientationParams.rightMargin = DensityUtil.dip2px(context, 10);
             ig_toOrientation.setLayoutParams(ig_toOrientationParams);
+            ig_toOrientation.setPadding(DensityUtil.dip2px(context, 5)
+                    , DensityUtil.dip2px(context, 5)
+                    , DensityUtil.dip2px(context, 5)
+                    , DensityUtil.dip2px(context, 5));
             ig_toOrientation.setImageResource(R.drawable.video_enlarge);
             ig_toOrientation.setAlpha((float) 1.0);
             bottomViewGoup.addView(ig_toOrientation);
@@ -152,6 +173,23 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
             seekBar.setAlpha((float) 1.0);
             seekBar.setOnSeekBarChangeListener(this);
             bottomViewGoup.addView(seekBar);
+
+            //回退按钮
+            ig_back = new ImageView(context);
+            ig_back.setId(ig_backId);
+            ig_back.setOnClickListener(this);
+            RelativeLayout.LayoutParams ig_backParams = new RelativeLayout.LayoutParams(ig_backWeith, ig_backWeith);
+            ig_backParams.addRule(RelativeLayout.CENTER_VERTICAL);
+            ig_backParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+            ig_backParams.leftMargin = 25;
+            ig_back.setLayoutParams(ig_backParams);
+            ig_back.setPadding(DensityUtil.dip2px(context, 5)
+                    , DensityUtil.dip2px(context, 5)
+                    , DensityUtil.dip2px(context, 5)
+                    , DensityUtil.dip2px(context, 5));
+            ig_back.setImageResource(R.drawable.video_back);
+            ig_back.setAlpha((float) 1.0);
+            topViewGoup.addView(ig_back);
         }
 
         //监听回调
@@ -268,7 +306,38 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
                         doLandView(viewListener);
                 }
                 break;
+            case ig_backId:
+                if (SCREEN_STATE == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
+                    onResolve(activity, false);
+                    doPortView();
+                } else {
+                    onPause();
+                    doPauseView();
+                    activity.finish();
+                }
+                break;
         }
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            if (v != topViewGoup && v != bottomViewGoup) {
+                if (isViewGoupVisible) {
+                    animation(topViewGoup, viewGoupHeigh);
+                    animation(bottomViewGoup, -viewGoupHeigh);
+                    isViewGoupVisible = false;
+                } else {
+                    animation(topViewGoup, 0);
+                    animation(bottomViewGoup, 0);
+                    isViewGoupVisible = true;
+                }
+                return true;
+            }
+        } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+            return false;
+        }
+        return false;
     }
 
     /*
@@ -296,14 +365,21 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
         if (getParent() instanceof RelativeLayout) {
             RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             setLayoutParams(params);
+            //显示状态栏
+            activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
             requestLayout();
         } else if (getParent() instanceof LinearLayout) {
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             setLayoutParams(params);
+            //显示状态栏
+            activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
             requestLayout();
         }
+        if (ifInitBreezeeViews)
+            ig_toOrientation.setImageResource(R.drawable.video_shrink);
         if (viewListener != null)
             viewListener.doLandView();
+        requestLayout();
     }
 
     /*
@@ -312,33 +388,76 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     public void doPortView() {
         if (getParent() instanceof RelativeLayout) {
             RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            params.height = DensityUtil.dip2px(getContext(), ViewGoupHeigh);
             setLayoutParams(params);
+            //显示状态栏
+            activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
             requestLayout();
         } else if (getParent() instanceof LinearLayout) {
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            params.height = DensityUtil.dip2px(getContext(), ViewGoupHeigh);
             setLayoutParams(params);
+            //显示状态栏
+            activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
             requestLayout();
         }
+        if (ifInitBreezeeViews)
+            ig_toOrientation.setImageResource(R.drawable.video_enlarge);
         if (viewListener != null)
             viewListener.doPortView();
     }
 
     /*
-    * 进度条拖动完成后View变化
+    * 动画
     * */
-    public void doChangedTheSeekBar() {
-        if (ifInitBreezeeViews) {
+    private ObjectAnimator mAnimator;
+    private int duration = 300;
 
-        }
-    }
+    private void animation(final View view, final int y) {
+        mAnimator = ObjectAnimator.ofInt(view, "scrollY", y);
+        mAnimator.setDuration(duration);
+        mAnimator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+                if (y == 0) {
+                    if (view == topViewGoup)
+                        topViewGoup.setVisibility(VISIBLE);
+                    else if (view == bottomViewGoup)
+                        bottomViewGoup.setVisibility(VISIBLE);
+                    if (SCREEN_STATE == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
+                        //显示状态栏
+                        activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
+                    }
+                }
+            }
 
-    /*
-    * 进度条拖动中View变化
-    * */
-    public void doChangingSeekBar() {
-        if (ifInitBreezeeViews) {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mAnimator = null;
+                if (y != 0) {
+                    if (view == topViewGoup)
+                        topViewGoup.setVisibility(INVISIBLE);
+                    else if (view == bottomViewGoup)
+                        bottomViewGoup.setVisibility(INVISIBLE);
+                    if (SCREEN_STATE == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
+                        //隐藏状态栏
+                        activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
+                    }
+                }
+                requestLayout();
+            }
 
-        }
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                mAnimator = null;
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
+        mAnimator.start();
     }
 
 }
