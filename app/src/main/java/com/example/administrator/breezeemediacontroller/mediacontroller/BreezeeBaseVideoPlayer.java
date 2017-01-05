@@ -122,7 +122,6 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
     @Override
     public void onPrepared() {
         MEDIA_STATE = CURRENT_STATE_PLAYING;
-        if (mediaListener != null) {
             mediaListener.setSeekBarMax((int) BreezeeVideoManager.instance().getMediaPlayer().getDuration());
             new Thread(new Runnable() {
                 @Override
@@ -137,7 +136,6 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
                     }
                 }
             }).start();
-        }
     }
 
     @Override
@@ -145,7 +143,6 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
         Log.e("PlayerListener", "-onAutoCompletion");
         MEDIA_STATE = CURRENT_STATE_AUTO_COMPLETE;
         BreezeeVideoManager.instance().getMediaPlayer().release();
-        if (mediaListener != null)
             mediaListener.resetView();
     }
 
