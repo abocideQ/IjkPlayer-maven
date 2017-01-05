@@ -99,9 +99,9 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
         return this;
     }
 
-    /*
+    /**
     * 初始化播放器以外View
-    * */
+    */
     public void initView(Activity activity, Context context, ViewListener listener, boolean ifInitBreezeeViews) {
         this.ifInitBreezeeViews = ifInitBreezeeViews;
         this.activity = activity;
@@ -202,9 +202,9 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
         requestLayout();
     }
 
-    /*
+    /**
     * 初始化播放器(开始播放)
-    * */
+    */
     public void setVideo(String url, Map<String, String> map, boolean isLoop, float speed) {
         setResource(url, map, isLoop, speed);
         addTextureView(this);
@@ -213,9 +213,9 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
         requestLayout();
     }
 
-    /*
+    /**
     * 设置顶部、底部布局高度
-    * */
+    */
     public void setViewGoupHeigh(int heigh) {
         viewGoupHeigh = heigh;
     }
@@ -340,27 +340,27 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
         return false;
     }
 
-    /*
+    /**
     * 暂停View变化
-    * */
+    */
     public void doPauseView() {
         if (ifInitBreezeeViews) {
             ig_play.setImageResource(R.drawable.video_play_pressed);
         }
     }
 
-    /*
+    /**
     * 恢复View变化
-    * */
+    */
     public void doResumeView() {
         if (ifInitBreezeeViews) {
             ig_play.setImageResource(R.drawable.video_pause_normal);
         }
     }
 
-    /*
+    /**
     * 横屏View变化
-    * */
+    */
     public void doLandView(ViewListener viewListener) {
         if (getParent() instanceof RelativeLayout) {
             RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -382,9 +382,9 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
         requestLayout();
     }
 
-    /*
+    /**
     * 竖屏View变化
-    * */
+    */
     public void doPortView() {
         if (getParent() instanceof RelativeLayout) {
             RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -407,9 +407,9 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
             viewListener.doPortView();
     }
 
-    /*
+    /**
     * 动画
-    * */
+    */
     private ObjectAnimator mAnimator;
     private int duration = 300;
 

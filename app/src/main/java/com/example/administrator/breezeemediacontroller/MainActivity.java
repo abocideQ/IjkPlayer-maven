@@ -17,6 +17,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
 
+import com.example.administrator.breezeemediacontroller.mediacontroller.BreezeeVideoManager;
 import com.example.administrator.breezeemediacontroller.mediacontroller.listener.ViewListener;
 import com.example.administrator.breezeemediacontroller.mediacontroller.video.SampleVideo;
 
@@ -74,25 +75,32 @@ public class MainActivity extends AppCompatActivity implements ViewListener {
         sampleVideo.doPauseView();
     }
 
-    /*
-    * 额外页面添加或修改
-    * */
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        BreezeeVideoManager.instance().releaseMediaPlayer();
+    }
+
+    /**
+     * 额外页面添加或修改
+     */
     @Override
     public void initOhterView() {
 
     }
 
-    /*
-    * 额外横屏处理-------------建议自行添加titlebar进行操作
-    * */
+    /**
+     * 额外横屏处理-------------建议自行添加titlebar进行操作
+     */
     @Override
     public void doLandView() {
         toptileView.setVisibility(View.GONE);
     }
 
-    /*
-    * 额外竖屏处理
-    * */
+    /**
+     * 额外竖屏处理
+     */
     @Override
     public void doPortView() {
         toptileView.setVisibility(View.VISIBLE);
@@ -123,6 +131,7 @@ public class MainActivity extends AppCompatActivity implements ViewListener {
         }
         return super.onKeyDown(keyCode, event);
     }
+
     /**
      * 获取状态栏高度
      *
@@ -138,7 +147,6 @@ public class MainActivity extends AppCompatActivity implements ViewListener {
         }
         return result;
     }
-
 
 
 }

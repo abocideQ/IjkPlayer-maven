@@ -62,16 +62,16 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
         super(context, attrs, defStyleAttr);
     }
 
-    /*
+    /**
     * 1.设置播放源
-    * */
+    */
     protected void setResource(String url, Map<String, String> map, boolean isLoop, float speed) {
         BreezeeVideoManager.instance().prepare(url, map, isLoop, speed);
     }
 
-    /*
+    /**
      * 2.添加TextureView
-     **/
+     */
     protected void addTextureView(MediaListener mediaListener) {
         this.mediaListener = mediaListener;
         textureView = null;
@@ -89,9 +89,9 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
         return textureView;
     }
 
-    /*
+    /**
     * 回调获取Surface
-    * */
+    */
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         this.surface = new Surface(surface);
@@ -116,9 +116,9 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
 
     }
 
-    /*
+    /**
     * PlayerListener
-    * */
+    */
     @Override
     public void onPrepared() {
         MEDIA_STATE = CURRENT_STATE_PLAYING;
@@ -197,14 +197,14 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
         onResume();
     }
 
-    /*
+    /**
     * 播放位置
-    * */
+    */
     private Long currentPosition;
 
-    /*
+    /**
     * 暂停
-    * */
+    */
     public void onPause() {
         if (BreezeeVideoManager.instance().getMediaPlayer() != null && BreezeeVideoManager.instance().getMediaPlayer().isPlaying()) {
             currentPosition = BreezeeVideoManager.instance().getMediaPlayer().getCurrentPosition();
@@ -213,9 +213,9 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
         }
     }
 
-    /*
+    /**
     * 恢复播放
-    * */
+    */
     public void onResume() {
         if (MEDIA_STATE == CURRENT_STATE_PAUSE) {
             if (currentPosition > 0 && BreezeeVideoManager.instance().getMediaPlayer() != null) {
@@ -226,9 +226,9 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
         }
     }
 
-    /*
+    /**
     * 横竖屏处理
-    * */
+    */
     public void onResolve(Activity activity, boolean showLand) {
         if (showLand) {
             SCREEN_STATE = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;

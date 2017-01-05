@@ -68,36 +68,37 @@ public class BreezeeVideoManager implements IMediaPlayer.OnPreparedListener, IMe
     //BreezeeVideoManager实例
     private static BreezeeVideoManager videoManager;
 
-    /*
-    * 1.BreezeeVideoManager单例获取
-    */
+    /**
+     * 1.BreezeeVideoManager单例获取
+     */
     public static synchronized BreezeeVideoManager instance() {
         if (videoManager == null) {
             videoManager = new BreezeeVideoManager();
         }
         return videoManager;
     }
-    /*
-    * BreezeeVideoManager初始化
-    * */
+
+    /**
+     * BreezeeVideoManager初始化
+     */
     public BreezeeVideoManager() {
         mediaPlayer = new IjkMediaPlayer();
         playerHandler = new PlayerHandler((new Handler().getLooper()));
-        listenerHandler=new Handler();
+        listenerHandler = new Handler();
     }
 
-    /*
-    * 2.设置播放器类型
-    * GSYVideoType IJKPLAYER = 0 or IJKEXOPLAYER = 1;
-    **/
+    /**
+     * 2.设置播放器类型
+     * GSYVideoType IJKPLAYER = 0 or IJKEXOPLAYER = 1;
+     */
     public void setVideoType(Context context, int videoType) {
         this.context = context;
         this.videoType = videoType;
     }
 
-    /*
-    * PlayerHandler(Player操作)
-    * */
+    /**
+     * PlayerHandler(Player操作)
+     */
     public class PlayerHandler extends Handler {
         public PlayerHandler(Looper looper) {
             super(looper);
@@ -119,15 +120,15 @@ public class BreezeeVideoManager implements IMediaPlayer.OnPreparedListener, IMe
                         mediaPlayer.release();
                     }
                     //缓存
-                    buffterPoint=0;
+                    buffterPoint = 0;
                     break;
             }
         }
     }
 
-    /*
-    * Player初始化
-    * */
+    /**
+     * Player初始化
+     */
     private void iniPLayer(Message msg) {
         try {
             currentVideoWidth = 0;
@@ -152,9 +153,9 @@ public class BreezeeVideoManager implements IMediaPlayer.OnPreparedListener, IMe
         }
     }
 
-    /*
-    * IJKPlayer初始化
-    * */
+    /**
+     * IJKPlayer初始化
+     */
     private void initIJKPlayer(Message msg) {
         mediaPlayer = new IjkMediaPlayer();
         //音频初始化
@@ -179,9 +180,9 @@ public class BreezeeVideoManager implements IMediaPlayer.OnPreparedListener, IMe
         }
     }
 
-    /*
-    * EXOPlayer初始化
-    * */
+    /**
+     * EXOPlayer初始化
+     */
     private void initEXOPlayer(Message msg) {
         mediaPlayer = new IjkExoMediaPlayer(context);
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -235,6 +236,7 @@ public class BreezeeVideoManager implements IMediaPlayer.OnPreparedListener, IMe
             }
         }
     }
+
     public void prepare(final String url, final Map<String, String> mapHeadData, boolean loop, float speed) {
         if (TextUtils.isEmpty(url))
             return;
@@ -294,9 +296,9 @@ public class BreezeeVideoManager implements IMediaPlayer.OnPreparedListener, IMe
         });
     }
 
-    /*
-    * 播放缓冲状态
-    * */
+    /**
+     * 播放缓冲状态
+     */
     @Override
     public void onBufferingUpdate(IMediaPlayer mp, final int percent) {
         listenerHandler.post(new Runnable() {
@@ -312,9 +314,10 @@ public class BreezeeVideoManager implements IMediaPlayer.OnPreparedListener, IMe
             }
         });
     }
-    /*
-    * 进度调整完成
-    * */
+
+    /**
+     * 进度调整完成
+     */
     @Override
     public void onSeekComplete(IMediaPlayer mp) {
         listenerHandler.post(new Runnable() {
@@ -326,9 +329,10 @@ public class BreezeeVideoManager implements IMediaPlayer.OnPreparedListener, IMe
             }
         });
     }
-    /*
-    * 错误状态
-    * */
+
+    /**
+     * 错误状态
+     */
     @Override
     public boolean onError(IMediaPlayer mp, final int what, final int extra) {
         listenerHandler.post(new Runnable() {
@@ -354,9 +358,10 @@ public class BreezeeVideoManager implements IMediaPlayer.OnPreparedListener, IMe
         });
         return false;
     }
-    /*
-    * VideoSize变化
-    * */
+
+    /**
+     * VideoSize变化
+     */
     @Override
     public void onVideoSizeChanged(IMediaPlayer mp, int width, int height, int sar_num, int sar_den) {
         currentVideoWidth = mp.getVideoWidth();
@@ -371,52 +376,58 @@ public class BreezeeVideoManager implements IMediaPlayer.OnPreparedListener, IMe
         });
     }
 
-    /*
+    /**
      * 暂停播放
-     **/
+     */
     public static void onPause() {
         if (BreezeeVideoManager.instance().listener() != null) {
             BreezeeVideoManager.instance().listener().onVideoPause();
         }
     }
 
-    /*
+    /**
      * 恢复播放
-     **/
+     */
     public static void onResume() {
         if (BreezeeVideoManager.instance().listener() != null) {
             BreezeeVideoManager.instance().listener().onVideoResume();
         }
     }
-    /*
-    * 获取当前视频高宽
-    * */
+
+    /**
+     * 获取当前视频高宽
+     */
     public int getCurrentVideoWidth() {
         return currentVideoWidth;
     }
+
     public int getCurrentVideoHeight() {
         return currentVideoHeight;
     }
-    /*
-    * 设置显示比例
-    * */
+
+    /**
+     * 设置显示比例
+     */
     public static void setShowType(int type) {
         TYPE = type;
     }
+
     public static int getShowType() {
         return TYPE;
     }
-    /*
-    * 设置是否使用硬解码
-    * */
-    public static void setUseMediaCodec(boolean ifUseMediaCodec){
-        USE_MEDIA_CODEC=ifUseMediaCodec;
-    }
-    /*
-    * 获取MediaPlayer
-    * */
 
+    /**
+     * 设置是否使用硬解码
+     */
+    public static void setUseMediaCodec(boolean ifUseMediaCodec) {
+        USE_MEDIA_CODEC = ifUseMediaCodec;
+    }
+
+    /**
+     * 获取MediaPlayer
+     */
     public AbstractMediaPlayer getMediaPlayer() {
         return mediaPlayer;
     }
+
 }
