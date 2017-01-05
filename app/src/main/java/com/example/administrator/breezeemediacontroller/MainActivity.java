@@ -5,7 +5,9 @@ import android.content.Context;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.TypedValue;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -134,4 +136,5 @@ public class MainActivity extends AppCompatActivity implements ViewListener {
         }
         return 0;
     }
+
 }

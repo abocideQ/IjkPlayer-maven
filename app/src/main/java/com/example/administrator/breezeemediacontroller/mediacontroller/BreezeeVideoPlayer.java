@@ -6,7 +6,9 @@ import android.content.pm.ActivityInfo;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -257,10 +259,10 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
                 }
                 break;
             case ig_toOrientationId:
-                if (screenType == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
+                if (SCREEN_STATE == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
                     onResolve(activity, false);
                     doPortView();
-                } else if (screenType == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+                } else if (SCREEN_STATE == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
                     onResolve(activity, true);
                     if (viewListener != null)
                         doLandView(viewListener);
@@ -339,4 +341,9 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
         }
     }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        Log.e("onkeyDown","-----------");
+        return super.onKeyDown(keyCode, event);
+    }
 }

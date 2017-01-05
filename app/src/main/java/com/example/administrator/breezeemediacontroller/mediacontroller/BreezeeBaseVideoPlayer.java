@@ -39,7 +39,7 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
     private Surface surface;
     private MediaListener mediaListener;
 
-    public static int screenType = 1; //当前屏幕状态，默认1为竖屏
+    public static int SCREEN_STATE = 1; //当前屏幕状态，默认1为竖屏
 
     public static final int CURRENT_STATE_NORMAL = 0; //正常
     public static final int CURRENT_STATE_PREPAREING = 1; //准备中
@@ -234,10 +234,10 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
     * */
     public void onResolve(Activity activity, boolean showLand) {
         if (showLand) {
-            screenType = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+            SCREEN_STATE = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
             activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         } else {
-            screenType = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+            SCREEN_STATE = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
             activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         }
     }
