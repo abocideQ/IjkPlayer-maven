@@ -37,7 +37,7 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
     private String TAG = "BreezeeBaseVideoPlayer";
     private BreezeeTextureView textureView;
     private Surface surface;
-    private MediaListener mediaListener;
+    private MediaListener mediaListener;//由BreezeeVideoPlayer传入
 
     public static int SCREEN_STATE = 1; //当前屏幕状态，默认1为竖屏
 
@@ -97,6 +97,7 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
         this.surface = new Surface(surface);
         BreezeeVideoManager.instance().setDisplay(this.surface);
         BreezeeVideoManager.instance().setListener(this);
+        mediaListener.bringViewsToFront();
     }
 
     @Override

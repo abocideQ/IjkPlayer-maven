@@ -8,4 +8,5 @@ public interface MediaListener {
     void setSeekBarMax(int max);//seekBar设置
     void updateSeekBar();//更新进度条
     void resetView();//播放完后初始化View
+    void bringViewsToFront();//让TopViewGoup和BottomViewGoup到顶层
 }

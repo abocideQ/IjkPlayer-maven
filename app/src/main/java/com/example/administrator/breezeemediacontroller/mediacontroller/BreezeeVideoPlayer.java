@@ -79,7 +79,7 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     private int ig_toOrientationHeigh;
 
     private Activity activity;
-    private ViewListener viewListener;
+    private ViewListener viewListener;//由Acticity或Fragment传入，控制View
     //BreezeeViews
     private boolean ifInitBreezeeViews;
 
@@ -192,7 +192,7 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
             topViewGoup.addView(ig_back);
         }
 
-        //监听回调
+        //监听回调(加入个人布局)
         if (listener != null)
             listener.initOhterView();
 
@@ -208,9 +208,6 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     public void setVideo(String url, Map<String, String> map, boolean isLoop, float speed) {
         setResource(url, map, isLoop, speed);
         addTextureView(this);
-        topViewGoup.bringToFront();
-        bottomViewGoup.bringToFront();
-        requestLayout();
     }
 
     /**
@@ -247,7 +244,9 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 
     }
-
+    /*
+    * MediaListener
+    * */
     @Override
     public void updateSeekBar() {
         if (!isTouching)
@@ -266,6 +265,13 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
             seekBar.setProgress(0);
             ig_play.setImageResource(R.drawable.video_play_pressed);
         }
+    }
+
+    @Override
+    public void bringViewsToFront() {
+        topViewGoup.bringToFront();
+        bottomViewGoup.bringToFront();
+        requestLayout();
     }
 
     @Override
@@ -332,12 +338,12 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
                     animation(bottomViewGoup, 0);
                     isViewGoupVisible = true;
                 }
-                return true;
+                return false;
             }
         } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
             return false;
         }
-        return false;
+        return true;
     }
 
     /**
@@ -363,16 +369,14 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     */
     public void doLandView(ViewListener viewListener) {
         if (getParent() instanceof RelativeLayout) {
+            activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);//显示状态栏
+            requestLayout();
             RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             setLayoutParams(params);
-            //显示状态栏
-            activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
-            requestLayout();
         } else if (getParent() instanceof LinearLayout) {
+            activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);//显示状态栏
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             setLayoutParams(params);
-            //显示状态栏
-            activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
             requestLayout();
         }
         if (ifInitBreezeeViews)
@@ -405,6 +409,7 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
             ig_toOrientation.setImageResource(R.drawable.video_enlarge);
         if (viewListener != null)
             viewListener.doPortView();
+        requestLayout();
     }
 
     /**

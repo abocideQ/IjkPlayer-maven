@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements ViewListener {
         toptileView.setAlpha((float) 0);
         toptileView.requestLayout();
         testMap = new HashMap<>();
-        //1.activity 2.除播放器以外View的处理 3.是否加载默认View
+        //1.activity 2.除播放器以外View处理的回调 3.是否加载默认View
         sampleVideo.initView(this, this, true);
         //1.播放地址 2.播放源信息头 3.是否循环播放 4.播放速度
         sampleVideo.setVideo(soucceMovie, testMap, false, 1);
@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements ViewListener {
     }
 
     /**
-     * 额外页面添加或修改
+     * 初始化,额外页面添加或修改
      */
     @Override
     public void initOhterView() {
@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements ViewListener {
     }
 
     /**
-     * 额外横屏处理-------------建议自行添加titlebar进行操作
+     * 额外横屏处理------
      */
     @Override
     public void doLandView() {
