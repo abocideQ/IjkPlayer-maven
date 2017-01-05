@@ -2,6 +2,7 @@ package com.example.administrator.breezeemediacontroller;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -137,4 +138,21 @@ public class MainActivity extends AppCompatActivity implements ViewListener {
         return 0;
     }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK
+                && event.getRepeatCount() == 0) {
+            if (sampleVideo.SCREEN_STATE== ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE){
+                sampleVideo.onResolve(this,false);
+                sampleVideo.doPortView();
+                return false;
+            }else {
+                sampleVideo.onPause();
+                sampleVideo.doPauseView();
+                this.finish();
+                System.exit(0);
+            }
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 }

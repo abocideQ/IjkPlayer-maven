@@ -341,9 +341,4 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
         }
     }
 
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        Log.e("onkeyDown","-----------");
-        return super.onKeyDown(keyCode, event);
-    }
 }
