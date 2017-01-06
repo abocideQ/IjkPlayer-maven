@@ -369,20 +369,18 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     */
     public void doLandView(ViewListener viewListener) {
         if (getParent() instanceof RelativeLayout) {
-            activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);//显示状态栏
             requestLayout();
             RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             setLayoutParams(params);
+            requestLayout();
         } else if (getParent() instanceof LinearLayout) {
-            activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);//显示状态栏
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             setLayoutParams(params);
             requestLayout();
         }
         if (ifInitBreezeeViews)
             ig_toOrientation.setImageResource(R.drawable.video_shrink);
-        if (viewListener != null)
-            viewListener.doLandView();
+        upAndDownTopView(true);//显示假状态栏
         requestLayout();
     }
 
@@ -407,8 +405,7 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
         }
         if (ifInitBreezeeViews)
             ig_toOrientation.setImageResource(R.drawable.video_enlarge);
-        if (viewListener != null)
-            viewListener.doPortView();
+        upAndDownTopView(true);//显示假状态栏
         requestLayout();
     }
 
@@ -431,7 +428,10 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
                         bottomViewGoup.setVisibility(VISIBLE);
                     if (SCREEN_STATE == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
                         //显示状态栏
+                        if (viewListener != null)
+                            viewListener.doPortView();
                         activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
+                        upAndDownTopView(true);//显示假状态栏
                     }
                 }
             }
@@ -446,7 +446,10 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
                         bottomViewGoup.setVisibility(INVISIBLE);
                     if (SCREEN_STATE == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
                         //隐藏状态栏
+                        if (viewListener != null)
+                            viewListener.doLandView();
                         activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
+                        upAndDownTopView(false);//隐藏假状态栏
                     }
                 }
                 requestLayout();
@@ -465,4 +468,46 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
         mAnimator.start();
     }
 
+    /*
+    * 显示/隐藏假titileBar
+    * */
+    public void upAndDownTopView(boolean isDown){
+        if (isDown){
+            if (getParent() instanceof RelativeLayout) {
+                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                params.topMargin = getStatusBarHeight(activity);
+                setLayoutParams(params);
+                requestLayout();
+            } else if (getParent() instanceof LinearLayout) {
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                params.topMargin = getStatusBarHeight(activity);
+                setLayoutParams(params);
+                requestLayout();
+            }
+        }else {
+            if (getParent() instanceof RelativeLayout) {
+                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                params.topMargin = 0;
+                setLayoutParams(params);
+                requestLayout();
+            } else if (getParent() instanceof LinearLayout) {
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                params.topMargin = 0;
+                setLayoutParams(params);
+                requestLayout();
+            }
+        }
+    }
+
+    /*
+    * 获取状态栏高
+    * */
+    public  int getStatusBarHeight(Activity activity) {
+        int result = 0;
+        int resourceId = activity.getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            result = activity.getResources().getDimensionPixelSize(resourceId);
+        }
+        return result;
+    }
 }

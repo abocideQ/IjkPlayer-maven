@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.example.administrator.breezeemediacontroller.mediacontroller.BreezeeVideoManager;
@@ -42,24 +43,26 @@ public class MainActivity extends AppCompatActivity implements ViewListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //状态栏透明并沉浸
+        //状态栏透明并沉浸(虚拟键透明不顶布局)
         getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);//状态栏透明(布局向上顶替)
+            window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);//虚拟键透明(布局向下顶替)
             window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.setStatusBarColor(Color.BLACK);
         }
         setContentView(R.layout.activity_main);
         sampleVideo = (SampleVideo) findViewById(R.id.mSampleVideo);
         toptileView = findViewById(R.id.toptileView);
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        params.height = getStatusBarHeight(this);
-        toptileView.setLayoutParams(params);
-        toptileView.setBackgroundColor(this.getResources().getColor(android.R.color.black));
-        toptileView.setAlpha((float) 0);
+        //设置假状态栏高
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) toptileView.getLayoutParams();
+            layoutParams.height = getStatusBarHeight();
+            toptileView.setLayoutParams(layoutParams);
+        }
+        toptileView.setBackgroundColor(this.getResources().getColor(android.R.color.holo_red_dark));
         toptileView.requestLayout();
         testMap = new HashMap<>();
         //1.activity 2.除播放器以外View处理的回调 3.是否加载默认View
@@ -82,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements ViewListener {
         BreezeeVideoManager.instance().releaseMediaPlayer();
     }
 
+
     /**
      * 初始化,额外页面添加或修改
      */
@@ -95,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements ViewListener {
      */
     @Override
     public void doLandView() {
-        toptileView.setVisibility(View.GONE);
+
     }
 
     /**
@@ -103,8 +107,7 @@ public class MainActivity extends AppCompatActivity implements ViewListener {
      */
     @Override
     public void doPortView() {
-        toptileView.setVisibility(View.VISIBLE);
-        toptileView.requestLayout();
+
     }
 
     @Override
@@ -132,21 +135,15 @@ public class MainActivity extends AppCompatActivity implements ViewListener {
         return super.onKeyDown(keyCode, event);
     }
 
-    /**
-     * 获取状态栏高度
-     *
-     * @param context 上下文
-     * @return 状态栏高度
-     */
-    public static int getStatusBarHeight(Context context) {
+    /*
+    * 获取状态栏高
+    * */
+    public  int getStatusBarHeight() {
         int result = 0;
-        int resourceId = context.getResources()
-                .getIdentifier("status_bar_height", "dimen", "android");
+        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
         if (resourceId > 0) {
-            result = context.getResources().getDimensionPixelSize(resourceId);
+            result = getResources().getDimensionPixelSize(resourceId);
         }
         return result;
     }
-
-
 }
