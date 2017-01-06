@@ -17,8 +17,10 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.administrator.breezeemediacontroller.R;
@@ -77,6 +79,25 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     int ig_toOrientationId = 0x951013;
     private int ig_toOrientationWeigh = 70;
     private int ig_toOrientationHeigh;
+    //视频时间显示
+    private TextView tv_playTime;
+    private TextView tv_totalTime;
+    public final static
+    @android.support.annotation.IdRes
+    int tv_playTimeId = 0x951000;
+    public final static
+    @android.support.annotation.IdRes
+    int tv_totalTimeId = 0x951001;
+    //缓冲图
+    private ProgressBar progressBar;
+    public final static
+    @android.support.annotation.IdRes
+    int progressBarId = 0x9511522;
+    //播放错误
+    private TextView tv_error;
+    public final static
+    @android.support.annotation.IdRes
+    int tv_errorId = 0x9511523;
 
     private Activity activity;
     private ViewListener viewListener;//由Acticity或Fragment传入，控制View
@@ -100,8 +121,8 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     }
 
     /**
-    * 初始化播放器以外View
-    */
+     * 初始化播放器以外View
+     */
     public void initView(Activity activity, Context context, ViewListener listener, boolean ifInitBreezeeViews) {
         this.ifInitBreezeeViews = ifInitBreezeeViews;
         this.activity = activity;
@@ -160,19 +181,6 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
             ig_toOrientation.setImageResource(R.drawable.video_enlarge);
             ig_toOrientation.setAlpha((float) 1.0);
             bottomViewGoup.addView(ig_toOrientation);
-            //进度条
-            seekBar = new SeekBar(context);
-            seekBar.setId(seekBarId);
-            RelativeLayout.LayoutParams seekBarParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            seekBarParams.addRule(RelativeLayout.CENTER_VERTICAL);
-            seekBarParams.addRule(RelativeLayout.LEFT_OF, ig_toOrientation.getId());
-            seekBarParams.addRule(RelativeLayout.RIGHT_OF, ig_play.getId());
-            seekBar.setLayoutParams(seekBarParams);
-//            seekBar.setProgressDrawable(getContext().getResources().getDrawable(R.color.white));
-//            seekBar.setScrollBarStyle(android.R.style.Widget_DeviceDefault_Light_SeekBar);
-            seekBar.setAlpha((float) 1.0);
-            seekBar.setOnSeekBarChangeListener(this);
-            bottomViewGoup.addView(seekBar);
 
             //回退按钮
             ig_back = new ImageView(context);
@@ -190,6 +198,50 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
             ig_back.setImageResource(R.drawable.video_back);
             ig_back.setAlpha((float) 1.0);
             topViewGoup.addView(ig_back);
+
+            //显示时间
+            tv_playTime = new TextView(context);
+            tv_totalTime = new TextView(context);
+            tv_playTime.setId(tv_playTimeId);
+            tv_totalTime.setId(tv_totalTimeId);
+            tv_playTime.setText("00:00");
+            tv_totalTime.setText("00:00");
+            tv_totalTime.setTextColor(getContext().getResources().getColor(android.R.color.white));
+            tv_playTime.setTextColor(getContext().getResources().getColor(android.R.color.white));
+            RelativeLayout.LayoutParams tv_playTimeParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            tv_playTimeParams.addRule(RelativeLayout.CENTER_VERTICAL);
+            tv_playTimeParams.addRule(RelativeLayout.RIGHT_OF, ig_play.getId());
+            tv_playTimeParams.leftMargin = DensityUtil.dip2px(context, 7);
+            tv_playTime.setLayoutParams(tv_playTimeParams);
+            bottomViewGoup.addView(tv_playTime);
+
+            RelativeLayout.LayoutParams tv_totalTimeParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            tv_totalTimeParams.addRule(RelativeLayout.CENTER_VERTICAL);
+            tv_totalTimeParams.addRule(RelativeLayout.LEFT_OF, ig_toOrientation.getId());
+            tv_totalTimeParams.rightMargin = DensityUtil.dip2px(context, 5);
+            tv_totalTime.setLayoutParams(tv_totalTimeParams);
+            bottomViewGoup.addView(tv_totalTime);
+
+            //进度条
+            seekBar = new SeekBar(context);
+            seekBar.setId(seekBarId);
+            RelativeLayout.LayoutParams seekBarParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            seekBarParams.addRule(RelativeLayout.CENTER_VERTICAL);
+            seekBarParams.addRule(RelativeLayout.LEFT_OF, tv_totalTime.getId());
+            seekBarParams.addRule(RelativeLayout.RIGHT_OF, tv_playTime.getId());
+            seekBar.setLayoutParams(seekBarParams);
+//            seekBar.setProgressDrawable(getContext().getResources().getDrawable(R.color.white));
+//            seekBar.setScrollBarStyle(android.R.style.Widget_DeviceDefault_Light_SeekBar);
+            seekBar.setAlpha((float) 1.0);
+            seekBar.setOnSeekBarChangeListener(this);
+            bottomViewGoup.addView(seekBar);
+
+            progressBar = new ProgressBar(context);
+            progressBar.setId(progressBarId);
+            FrameLayout.LayoutParams progressBarParams = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            progressBarParams.gravity = Gravity.CENTER;
+            progressBar.setLayoutParams(progressBarParams);
+            addView(progressBar);
         }
 
         //监听回调(加入个人布局)
@@ -199,20 +251,24 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
         //添加布局
         addView(topViewGoup);
         addView(bottomViewGoup);
+        if (tv_error != null)
+            removeView(tv_error);
         requestLayout();
     }
 
     /**
-    * 初始化播放器(开始播放)
-    */
+     * 初始化播放器(开始播放)
+     */
     public void setVideo(String url, Map<String, String> map, boolean isLoop, float speed) {
+        if (tv_error != null)
+            removeView(tv_error);
         setResource(url, map, isLoop, speed);
         addTextureView(this);
     }
 
     /**
-    * 设置顶部、底部布局高度
-    */
+     * 设置顶部、底部布局高度
+     */
     public void setViewGoupHeigh(int heigh) {
         viewGoupHeigh = heigh;
     }
@@ -242,8 +298,9 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
+        setPlayTime(CommonUtil.stringForTime(seekBar.getProgress()));
     }
+
     /*
     * MediaListener
     * */
@@ -262,9 +319,12 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     @Override
     public void resetView() {
         if (ifInitBreezeeViews) {
+            MEDIA_STATE = CURRENT_STATE_AUTO_COMPLETE;
             seekBar.setProgress(0);
             ig_play.setImageResource(R.drawable.video_play_pressed);
+            requestLayout();
         }
+        requestLayout();
     }
 
     @Override
@@ -275,15 +335,77 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     }
 
     @Override
+    public void setTotalTime(String time) {
+        if (ifInitBreezeeViews)
+            tv_totalTime.setText(time);
+    }
+
+    @Override
+    public void setPlayTime(String time) {
+        if (ifInitBreezeeViews)
+            tv_playTime.setText(time);
+    }
+
+    @Override
+    public void isShowProgressBar(boolean isShow) {
+        if (ifInitBreezeeViews) {
+            if (isShow) {
+                progressBar.setVisibility(VISIBLE);
+                progressBar.bringToFront();
+                requestLayout();
+            } else {
+                progressBar.setVisibility(INVISIBLE);
+                requestLayout();
+            }
+        }
+        requestLayout();
+    }
+
+    @Override
+    public void checkNetWork() {
+        if (!CommonUtil.isNetworkAvailable(activity)) {
+            BreezeeVideoManager.instance().releaseMediaPlayer();
+            resetView();
+            MEDIA_STATE = CURRENT_STATE_ERROR;
+            isShowProgressBar(false);
+            addErroView();
+        } else {
+            BreezeeVideoManager.instance().releaseMediaPlayer();
+            resetView();
+            MEDIA_STATE = CURRENT_STATE_ERROR;
+            isShowProgressBar(false);
+            addErroView();
+        }
+    }
+
+    @Override
+    public void addErroView() {
+        if (ifInitBreezeeViews) {
+            tv_error = new TextView(getContext());
+            tv_error.setId(tv_errorId);
+            tv_error.setText("播放出错,请尝试重新观看或检查网络是否正常!!");
+            tv_error.setTextColor(getContext().getResources().getColor(android.R.color.holo_red_dark));
+            FrameLayout.LayoutParams tv_errorParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            tv_errorParams.gravity = Gravity.CENTER;
+            tv_error.setLayoutParams(tv_errorParams);
+            addView(tv_error);
+            requestLayout();
+        }
+    }
+
+    @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case ig_playId:
                 if (MEDIA_STATE == CURRENT_STATE_PLAYING) {
                     onPause();
                     doPauseView();
+                    MEDIA_STATE = CURRENT_STATE_PAUSE;
                 } else if (MEDIA_STATE == CURRENT_STATE_PAUSE) {
                     onResume();
                     doResumeView();
+                    MEDIA_STATE = CURRENT_STATE_PLAYING;
+                    isShowProgressBar(true);
                 } else if (MEDIA_STATE == CURRENT_STATE_AUTO_COMPLETE) {
                     if (BreezeeVideoManager.instance().getMediaPlayer() != null)
                         BreezeeVideoManager.instance().getMediaPlayer().release();
@@ -292,6 +414,8 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
                     doResumeView();
                     if (viewListener != null)
                         viewListener.playOhterVideo();
+                    MEDIA_STATE = CURRENT_STATE_PLAYING;
+                    isShowProgressBar(true);
                 } else {
                     if (BreezeeVideoManager.instance().getMediaPlayer() != null)
                         BreezeeVideoManager.instance().getMediaPlayer().release();
@@ -300,6 +424,10 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
                     doResumeView();
                     if (viewListener != null)
                         viewListener.playOhterVideo();
+                    MEDIA_STATE = CURRENT_STATE_PLAYING_AGAIN;
+                    if (seekBar != null)
+                        seekBar.setProgress(currentPosition);
+                    isShowProgressBar(true);
                 }
                 break;
             case ig_toOrientationId:
@@ -347,8 +475,8 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     }
 
     /**
-    * 暂停View变化
-    */
+     * 暂停View变化
+     */
     public void doPauseView() {
         if (ifInitBreezeeViews) {
             ig_play.setImageResource(R.drawable.video_play_pressed);
@@ -356,8 +484,8 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     }
 
     /**
-    * 恢复View变化
-    */
+     * 恢复View变化
+     */
     public void doResumeView() {
         if (ifInitBreezeeViews) {
             ig_play.setImageResource(R.drawable.video_pause_normal);
@@ -365,8 +493,8 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     }
 
     /**
-    * 横屏View变化
-    */
+     * 横屏View变化
+     */
     public void doLandView(ViewListener viewListener) {
         if (getParent() instanceof RelativeLayout) {
             requestLayout();
@@ -385,8 +513,8 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     }
 
     /**
-    * 竖屏View变化
-    */
+     * 竖屏View变化
+     */
     public void doPortView() {
         if (getParent() instanceof RelativeLayout) {
             RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -410,8 +538,8 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     }
 
     /**
-    * 动画
-    */
+     * 动画
+     */
     private ObjectAnimator mAnimator;
     private int duration = 300;
 
@@ -471,20 +599,20 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     /*
     * 显示/隐藏假titileBar
     * */
-    public void upAndDownTopView(boolean isDown){
-        if (isDown){
+    public void upAndDownTopView(boolean isDown) {
+        if (isDown) {
             if (getParent() instanceof RelativeLayout) {
                 RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                params.topMargin = getStatusBarHeight(activity);
+                params.topMargin = CommonUtil.getStatusBarHeight(activity);
                 setLayoutParams(params);
                 requestLayout();
             } else if (getParent() instanceof LinearLayout) {
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                params.topMargin = getStatusBarHeight(activity);
+                params.topMargin = CommonUtil.getStatusBarHeight(activity);
                 setLayoutParams(params);
                 requestLayout();
             }
-        }else {
+        } else {
             if (getParent() instanceof RelativeLayout) {
                 RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 params.topMargin = 0;
@@ -499,15 +627,5 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
         }
     }
 
-    /*
-    * 获取状态栏高
-    * */
-    public  int getStatusBarHeight(Activity activity) {
-        int result = 0;
-        int resourceId = activity.getResources().getIdentifier("status_bar_height", "dimen", "android");
-        if (resourceId > 0) {
-            result = activity.getResources().getDimensionPixelSize(resourceId);
-        }
-        return result;
-    }
+
 }
