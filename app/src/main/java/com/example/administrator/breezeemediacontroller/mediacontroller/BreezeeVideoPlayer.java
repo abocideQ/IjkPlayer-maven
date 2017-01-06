@@ -405,7 +405,7 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
                     onResume();
                     doResumeView();
                     MEDIA_STATE = CURRENT_STATE_PLAYING;
-                    isShowProgressBar(true);
+//                    isShowProgressBar(true);
                 } else if (MEDIA_STATE == CURRENT_STATE_AUTO_COMPLETE) {
                     if (BreezeeVideoManager.instance().getMediaPlayer() != null)
                         BreezeeVideoManager.instance().getMediaPlayer().release();
