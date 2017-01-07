@@ -4,33 +4,23 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.graphics.SurfaceTexture;
-import android.os.Handler;
-import android.os.Message;
+import android.media.AudioManager;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Surface;
 import android.view.TextureView;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
-import android.widget.RelativeLayout;
 
+import com.example.administrator.breezeemediacontroller.mediacontroller.item.BreezeeTextureView;
+import com.example.administrator.breezeemediacontroller.mediacontroller.item.CommonUtil;
 import com.example.administrator.breezeemediacontroller.mediacontroller.listener.MediaListener;
 import com.example.administrator.breezeemediacontroller.mediacontroller.listener.PlayerListener;
-import com.example.administrator.breezeemediacontroller.mediacontroller.model.BreezeeModel;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Formatter;
-import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.ForkJoinWorkerThread;
 
 
 /**
@@ -44,6 +34,10 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
     private BreezeeTextureView textureView;
     private Surface surface;
     private MediaListener mediaListener;//由BreezeeVideoPlayer传入
+
+    private AudioManager audioManager;//音量控制
+    public int currentVolume;//当前音量
+    public int volumeMax;//最大音量
 
     public static int SCREEN_STATE = 1; //当前屏幕状态，默认1为竖屏
 
@@ -74,6 +68,9 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
      */
     protected void setResource(String url, Map<String, String> map, boolean isLoop, float speed) {
         BreezeeVideoManager.instance().prepare(url, map, isLoop, speed);
+        audioManager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+        currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        volumeMax = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
     }
 
     /**
@@ -282,4 +279,15 @@ public abstract class BreezeeBaseVideoPlayer extends FrameLayout implements Play
             activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         }
     }
+
+    /**
+     * 音量控制
+     */
+    public void changeVolume(int currentVolume) {
+        if (currentVolume <= 0) {
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, Math.abs(currentVolume), 0); //currentVolume:音量绝对值
+        }
+        this.currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+    }
+
 }

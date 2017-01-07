@@ -5,15 +5,18 @@ import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -21,9 +24,10 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.administrator.breezeemediacontroller.R;
+import com.example.administrator.breezeemediacontroller.mediacontroller.item.CommonUtil;
+import com.example.administrator.breezeemediacontroller.mediacontroller.item.DensityUtil;
 import com.example.administrator.breezeemediacontroller.mediacontroller.listener.MediaListener;
 import com.example.administrator.breezeemediacontroller.mediacontroller.listener.ViewListener;
 
@@ -98,6 +102,15 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
     public final static
     @android.support.annotation.IdRes
     int tv_errorId = 0x9511523;
+    //音量、亮度、进度
+    private TextView tv_Info;
+    public final static
+    @android.support.annotation.IdRes
+    int tv_InfoId = 0x9511523;
+    private int ViewGoupWith;//屏幕当前宽度
+    protected int mScreenWidth; //屏幕宽度
+    protected int mScreenHeight; //屏幕高度
+
 
     private Activity activity;
     private ViewListener viewListener;//由Acticity或Fragment传入，控制View
@@ -242,8 +255,28 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
             progressBarParams.gravity = Gravity.CENTER;
             progressBar.setLayoutParams(progressBarParams);
             addView(progressBar);
+
+            //音量、进度、亮度
+            tv_Info = new TextView(context);
+            tv_Info.setId(tv_InfoId);
+            tv_Info.setTextColor(getContext().getResources().getColor(android.R.color.white));
+            FrameLayout.LayoutParams tv_InfoParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            tv_InfoParams.gravity = Gravity.CENTER;
+            tv_Info.setLayoutParams(tv_InfoParams);
+            addView(tv_Info);
+            requestLayout();
+            tv_Info.setVisibility(INVISIBLE);
+
         }
 
+        ViewGoupWith = this.getMeasuredWidth();
+        mScreenWidth = getContext().getResources().getDisplayMetrics().widthPixels;
+        mScreenHeight = getContext().getResources().getDisplayMetrics().heightPixels;
+//        try {
+//            brightness = Settings.System.getInt(activity.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS);
+//        } catch (Settings.SettingNotFoundException e) {
+//            e.printStackTrace();
+//        }
         //监听回调(加入个人布局)
         if (listener != null)
             listener.initOhterView();
@@ -453,10 +486,34 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
         }
     }
 
+    protected float mDownX;//触摸的X
+
+    protected float mDownY; //触摸的Y
+
+    protected boolean mChangeVolume = false;//是否改变音量
+
+    protected boolean mChangePosition = false;//是否改变播放进度
+
+    protected boolean mBrightness = false;//是否改变亮度
+
+    private int pointId;
+
+    private boolean ifTouchIt = true;//是否第一次
+
+    private int lastVolume; //上一次调节后的音量
+
     @Override
     public boolean onTouch(View v, MotionEvent event) {
+        float x = event.getX();
+        float y = event.getY();
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             if (v != topViewGoup && v != bottomViewGoup) {
+                mDownX = x;
+                mDownY = y;
+                mChangeVolume = false;
+                mChangePosition = false;
+                mBrightness = false;
+                pointId = event.getPointerId(0);
                 if (isViewGoupVisible) {
                     animation(topViewGoup, viewGoupHeigh);
                     animation(bottomViewGoup, -viewGoupHeigh);
@@ -466,10 +523,35 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
                     animation(bottomViewGoup, 0);
                     isViewGoupVisible = true;
                 }
-                return false;
             }
         } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-            return false;
+            float deltaX = x - mDownX;
+            float deltaY = y - mDownY;
+            float absDeltaX = Math.abs(deltaX);
+            float absDeltaY = Math.abs(deltaY);
+            if (pointId == event.getPointerId(0)) {
+                if (SCREEN_STATE == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
+                    if (mDownX > mScreenHeight / 2) {
+                        int deltaV = (int) ((volumeMax * deltaY * 3 / mScreenHeight));
+                        if (ifTouchIt) {
+                            changeVolume(deltaV);
+                        } else {
+                            changeVolume(deltaV - lastVolume);
+                        }
+                        setInfoView(1);
+                    } else {
+                        changeBrightness((int) deltaY);
+                        Log.e("sd-s--d-sd", "-------------->" + brightness + "---------------" + deltaY);
+                    }
+                }
+                pointId = event.getPointerId(0);
+            }
+        } else if (event.getAction() == MotionEvent.ACTION_UP) {
+            ifTouchIt = false;
+            lastVolume = currentVolume;
+            if (ifInitBreezeeViews) {
+                tv_Info.setVisibility(INVISIBLE);
+            }
         }
         return true;
     }
@@ -627,5 +709,55 @@ public abstract class BreezeeVideoPlayer extends BreezeeBaseVideoPlayer implemen
         }
     }
 
+    /**
+     * 音量、进度、亮度View控制 1、2、3
+     */
+    public void setInfoView(int type) {
+        if (ifInitBreezeeViews) {
+            tv_Info.bringToFront();
+            tv_Info.setVisibility(VISIBLE);
+            if (type == 1) {
+                if (currentVolume < 0)
+                    tv_Info.setText("音量：" + "0");
+                else if (currentVolume >= 0 && currentVolume < volumeMax && currentVolume * 10 <= 100)
+                    tv_Info.setText("音量：" + currentVolume * 10);
+                else
+                    tv_Info.setText("音量：" + "100");
+            } else if (type == 2) {
+                tv_Info.setText("进度：0");
+            } else {
+                if ((int) (brightness * 100) > 100)
+                    tv_Info.setText("亮度：100");
+                else
+                    tv_Info.setText("亮度：" + (int) (brightness * 100));
+            }
+        }
+        requestLayout();
+    }
+
+    /**
+     * 亮度调节
+     */
+    private float brightness = (float) 0.5;
+    private float addNum = (float) 0.015;
+
+    public void changeBrightness(int y) {
+        if (y <= 0) {
+            if (brightness + addNum <= 1.1)
+                brightness += addNum;
+        } else {
+            if (brightness - addNum >= 0)
+                brightness -= addNum;
+        }
+        try {
+            Window window = activity.getWindow();
+            WindowManager.LayoutParams lp = window.getAttributes();
+            lp.screenBrightness = brightness;
+            window.setAttributes(lp);
+            setInfoView(3);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 }
