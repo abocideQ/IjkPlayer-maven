@@ -24,7 +24,10 @@ import java.util.Map;
 
 
 /**
- * 关联播放器、播放器与View逻辑控制
+ *  关联播放器、播放器与View逻辑控制
+ *  视频比例切换
+ *  BreezeeVideoManager.instance().setShowType(BreezeeVideoManager.instance().SCREEN_TYPE_DEFAULT);
+ *  textureView.requestLayout();
  * Created by Breezee on 2017/1/2.
  */
 
